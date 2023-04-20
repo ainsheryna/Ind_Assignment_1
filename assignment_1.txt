@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#define LENGTH_NUM 4
+#define LOAD_TIME 5
+void sigint_handler(int sig);
+
+int main() {
+signal(SIGINT, sigint_handler);
+
+while(1) {
+int pipefds[2];
+char num[LENGTH_NUM + 1];
+char buffer[LENGTH_NUM + 1];
+char string[50];
+if(pipe(pipefds) == -1) {
+perror("pipe");
+exit(EXIT_FAILURE);
+}
+void getNUM(char num[LENGTH_NUM + 1]) {
+
+srand (getpid() + getppid()) ;
+um[0] = 50 + (int)(6*((double)rand() / RAND_MAX + 1.0/14));
+
+for(int i = 1; i < LENGTH_NUM; i++) {
+num[i] = 52 + (int)(6*((double)rand() / RAND_MAX + 1.0/14));
+}
+
+num [LENGTH_NUM] = '\0';
+
+}
+
+pid_t pid = fork();
+
+if(pid == -1) {
+perror("fork");
+exit(EXIT_FAILURE);
+}
+
+if(pid == 0) {
+getNUM(num);
+close(pipefds[0]);
+
+if(write(pipefds[1], num, LENGTH_NUM + 1) == -1) {
+perror("write");
+exit(EXIT_FAILURE);
+}
+printf("Please enter your purpose (GB:Genereal Banking, CS:Customer Service, CDS:Credit/Debit Service:\n");
+fgets(string, 50, stdin);
+printf("This is your required service/assistance: %s", string);
+printf("Generating your waiting number...\n");
+
+sleep(LOAD_TIME);
+exit(EXIT_SUCCESS);
+}
+
+if(pid > 0) {
+wait(NULL);
+
+close(pipefds[1]);
+
+if(read(pipefds[0], buffer, LENGTH_NUM + 1) == -1) {
+perror("read");
+exit(EXIT_FAILURE);
+}
+close(pipefds[0]);
+
+printf("Your waiting number is '%s' \n\n", buffer);
+}
+
+}
+
+return EXIT_SUCCESS;
+
+}
+void sigint_handler(int sig) {
+printf("Oops! Process was interrupted!\n");
+exit(EXIT_SUCCESS);
+}
+
